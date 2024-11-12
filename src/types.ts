@@ -1,5 +1,5 @@
 import {IconifyInfo} from '@iconify/types'
-import {BlockProperties} from 'grapesjs'
+import {AddComponentTypeOptions} from 'grapesjs'
 
 export type ModalOptions = {
   title: string
@@ -37,8 +37,8 @@ export type PluginOptions = {
   search?: Partial<SearchOptions>
   modal?: Partial<ModalOptions>
   component?: Partial<ComponentOptions>
-  block?: BlockProperties
-}
+} & Pick<AddComponentTypeOptions, 'block'> &
+  Pick<AddComponentTypeOptions, 'model'>
 
 export type IconCollection = {
   prefix: string
