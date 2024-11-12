@@ -52,7 +52,7 @@ export type IconCollection = {
   suffixes?: Record<string, string>
 }
 
-export type IconSearch = {
+export type IconSearchResponse = {
   icons: string[]
   total: number
   limit: number

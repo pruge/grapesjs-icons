@@ -1,10 +1,10 @@
-import type {IconCollection, IconSearch, SearchOptions, SelectOption} from '../types'
+import type {IconCollection, IconSearchResponse, SearchOptions, SelectOption} from '../types'
 
 const apiUrl = import.meta.env.VITE_ICONIFY_API_URL
 const pluginName = import.meta.env.VITE_PLUGIN_NAME
 const logScope = `[${pluginName}::utils/icon]`
 
-export async function search(searchOptions: SearchOptions): Promise<IconSearch | null> {
+export async function search(searchOptions: SearchOptions): Promise<IconSearchResponse | null> {
   try {
     const {query, limit, start, prefix, prefixes} = searchOptions
     let optionStr = ''

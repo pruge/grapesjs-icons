@@ -1,12 +1,12 @@
 import {containerName, openModalName} from './constants'
 import {getModalOptions, getComponentOptions, getSearchOptions} from './utils/option'
 import {openModal} from './utils/modal'
-import {setInsertionMode} from './utils/storage'
+import {clearCache, setInsertionMode} from './utils/storage'
 
 import type {Plugin, Command, Component} from 'grapesjs'
 import type {PluginOptions, CommandOptions} from './types'
-import {loadSvgIcons} from './utils/svg'
 import {detachAllEventListeners} from './utils/event-listener'
+import {enableCache} from 'iconify-icon'
 
 const commandOptions: Required<CommandOptions> = {
   insertionMode: 'drop',
@@ -19,16 +19,20 @@ const plugin: Plugin<PluginOptions> = (editor, options) => {
 
   function listenEditorEvents() {
     editor.on('load', async () => {
-      loadSvgIcons(editor)
+      enableCache('session') // not working.
+      // loadSvgIcons(editor)
+      // @ts-ignore
+      window.editor = editor
     })
 
-    editor.on('modal:open', () => {
+    editor.on('modal:close', () => {
       const containerElement = document.querySelector<HTMLDivElement>(`.${containerName}`)
 
       if (!containerElement) {
         return
       }
 
+      clearCache()
       detachAllEventListeners()
     })
 
@@ -90,7 +94,7 @@ const plugin: Plugin<PluginOptions> = (editor, options) => {
 
   editor.BlockManager.add(type, {
     ...{
-      category: 'basic',
+      category: 'Basic',
       label: name,
       content: {
         type,

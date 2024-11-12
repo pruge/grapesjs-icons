@@ -11,6 +11,8 @@ import {
 import {getIconCategoryOptions} from './icon'
 
 import type {SelectOption, IconCollection} from '../types'
+import {getSvgIcon} from './svg'
+import {attachEventListener} from './event-listener'
 
 function generateSelectElement(options: SelectOption[]): HTMLSelectElement {
   const selectElement = document.createElement('select')
@@ -126,7 +128,7 @@ export function generateActionsElement(searchPlaceholder: string): HTMLDivElemen
   return actionsElement
 }
 
-function generateIconTargetElement(iconPrefix: string, iconName: string): HTMLDivElement {
+async function generateIconTargetElement(iconPrefix: string, iconName: string): Promise<HTMLDivElement> {
   const iconTargetElement = document.createElement('div')
 
   iconTargetElement.style.width = '48px'
@@ -139,27 +141,28 @@ function generateIconTargetElement(iconPrefix: string, iconName: string): HTMLDi
 
   iconTargetElement.dataset.iconPrefix = iconPrefix
   iconTargetElement.dataset.iconName = iconName
+  const iconFullName = `${iconPrefix}:${iconName}`
+  const svgIcon = await getSvgIcon(iconFullName)
+  if (svgIcon) {
+    iconTargetElement.innerHTML = svgIcon
+    attachEventListener('click', iconTargetElement, () => {
+      // @ts-ignore
+      const selectedComponent = window.editor.getSelected()
 
-  return iconTargetElement
-}
+      if (!selectedComponent) {
+        return
+      }
 
-export function generateContentElement(iconCollection: IconCollection, categoryName?: string): HTMLDivElement {
-  const {categories, prefix: iconPrefix} = iconCollection
-  const iconNames = !categoryName ? categories[Object.keys(categories)[0]] : categories[categoryName]
-  const contentElement = document.createElement('div')
+      selectedComponent.set({
+        content: svgIcon,
+      })
 
-  for (const iconName of iconNames) {
-    const iconTargetElement = generateIconTargetElement(iconPrefix, iconName)
-    contentElement.appendChild(iconTargetElement)
+      // @ts-ignore
+      window.editor.Modal.close()
+    })
   }
 
-  contentElement.style.display = 'flex'
-  contentElement.style.gap = '10px'
-  contentElement.style.flexWrap = 'wrap'
-  contentElement.style.overflowY = 'auto'
-  contentElement.classList.add(contentName)
-
-  return contentElement
+  return iconTargetElement
 }
 
 export function generateContentElement2(): HTMLDivElement {
@@ -174,12 +177,12 @@ export function generateContentElement2(): HTMLDivElement {
   return contentElement
 }
 
-export function generateIconElements(icons: string[]): DocumentFragment {
+export async function generateIconElements(icons: string[]): Promise<DocumentFragment> {
   const fragmentElement = new DocumentFragment()
 
   for (const icon of icons) {
     const [iconPrefix, iconName] = icon.split(':')
-    const iconTargetElement = generateIconTargetElement(iconPrefix, iconName)
+    const iconTargetElement = await generateIconTargetElement(iconPrefix, iconName)
     fragmentElement.appendChild(iconTargetElement)
   }
 

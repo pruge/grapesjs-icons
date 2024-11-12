@@ -1,11 +1,10 @@
 import {loadIcons} from 'iconify-icon'
-import {contentName, iconTargetName} from '../constants'
+import {contentName} from '../constants'
 import {generateIconElements} from './element'
 
 import type {SearchOptions} from '../types'
 import {search} from './icon'
 import {debounce, throttle} from './interval'
-import {detachAllEventListeners} from './event-listener'
 import {translate} from 'open-google-translator'
 
 // see https://iconify.design/docs/api/search.html
@@ -47,7 +46,6 @@ export function onSearchChanged(searchOptions: SearchOptions): EventListener {
 
 export function onContentInfinityScroll(searchOptions: SearchOptions): EventListener {
   return async (event) => {
-    // console.log('scroll....', event)
     const contentElement = event.target as HTMLDivElement | null
 
     if (!contentElement) {
@@ -73,7 +71,6 @@ export function onContentInfinityScroll(searchOptions: SearchOptions): EventList
 }
 
 const addIcons = async (searchOptions: SearchOptions) => {
-  console.log('searchOptions', searchOptions)
   if (searchOptions.query === '' || searchOptions.query === undefined) return
   const iconSearchResult = await search(searchOptions)
   const icons = iconSearchResult?.icons || []
@@ -81,15 +78,13 @@ const addIcons = async (searchOptions: SearchOptions) => {
   loadIcons(icons)
 
   const currentContentElement = document.querySelector<HTMLDivElement>(`.${contentName}`)
-  console.log('currentContentElement', currentContentElement)
-  const iconElements = generateIconElements(icons)
-  console.log('iconElements', iconElements)
+  const iconElements = await generateIconElements(icons)
 
   if (!currentContentElement) {
     return
   }
 
-  detachAllEventListeners(`.${iconTargetName}`)
+  // detachAllEventListeners(`.${iconTargetName}`)
   currentContentElement.appendChild(iconElements)
 }
 
