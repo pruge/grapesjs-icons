@@ -1,6 +1,6 @@
 import {loadIcons} from 'iconify-icon'
 import {contentName} from '../constants'
-import {generateIconElements} from './element'
+import {generateEmptyIconElement, generateIconElements} from './element'
 
 import type {SearchOptions} from '../types'
 import {search} from './icon'
@@ -36,8 +36,7 @@ export function onSearchChanged(searchOptions: SearchOptions): EventListener {
 
         prevSearchOptions = {...searchOptions, query: translatedValue}
 
-        clearIcons()
-        await addIcons(prevSearchOptions)
+        await addIcons(prevSearchOptions, {clear: true})
       },
       searchOptions.debounce,
     )
@@ -62,7 +61,7 @@ export function onContentInfinityScroll(searchOptions: SearchOptions): EventList
           const amount = limit - start
           if (total < start) return
           prevSearchOptions = {...prevSearchOptions, start: start + amount, limit: limit + amount}
-          await addIcons(prevSearchOptions)
+          await addIcons(prevSearchOptions, {clear: false})
         }
       },
       searchOptions.throttle,
@@ -70,27 +69,40 @@ export function onContentInfinityScroll(searchOptions: SearchOptions): EventList
   }
 }
 
-const addIcons = async (searchOptions: SearchOptions) => {
-  if (searchOptions.query === '' || searchOptions.query === undefined) return
+const addIcons = async (searchOptions: SearchOptions, options: {clear: boolean}) => {
+  if (options.clear) clearIcons()
+  if (searchOptions.query === '' || searchOptions.query === undefined) return addEmptyIcons()
   const iconSearchResult = await search(searchOptions)
   const icons = iconSearchResult?.icons || []
   prevSearchOptions.total = iconSearchResult?.total || 0
   loadIcons(icons)
 
   const currentContentElement = document.querySelector<HTMLDivElement>(`.${contentName}`)
-  const iconElements = await generateIconElements(icons)
-
   if (!currentContentElement) {
     return
   }
 
-  // detachAllEventListeners(`.${iconTargetName}`)
-  currentContentElement.appendChild(iconElements)
+  if (icons.length === 0) {
+    const emptyIconElement = generateEmptyIconElement()
+    currentContentElement.appendChild(emptyIconElement)
+  } else {
+    const iconElements = await generateIconElements(icons)
+    currentContentElement.appendChild(iconElements)
+  }
 }
 
 export const clearIcons = () => {
   const contentElement = document.querySelector<HTMLDivElement>(`.${contentName}`)
   if (contentElement) {
     contentElement.innerHTML = ''
+  }
+}
+
+export const addEmptyIcons = () => {
+  const contentElement = document.querySelector<HTMLDivElement>(`.${contentName}`)
+  if (contentElement) {
+    contentElement.innerHTML = ''
+    const emptyIconElement = generateEmptyIconElement()
+    contentElement.appendChild(emptyIconElement)
   }
 }

@@ -1,97 +1,7 @@
-import {
-  collectionName,
-  categoryName,
-  searchName,
-  actionsName,
-  iconTargetName,
-  contentName,
-  containerName,
-  activeColor,
-} from '../constants'
-import {getIconCategoryOptions} from './icon'
+import {searchName, actionsName, iconTargetName, contentName, containerName, activeColor} from '../constants'
 
-import type {SelectOption, IconCollection} from '../types'
 import {getSvgIcon} from './svg'
 import {attachEventListener} from './event-listener'
-
-function generateSelectElement(options: SelectOption[]): HTMLSelectElement {
-  const selectElement = document.createElement('select')
-
-  for (const {text, value} of options) {
-    const optionElement = document.createElement('option')
-
-    optionElement.text = text
-    optionElement.value = value
-
-    selectElement.appendChild(optionElement)
-  }
-
-  selectElement.style.maxWidth = '220px'
-  selectElement.style.width = '100%'
-  selectElement.style.padding = '10px 14px'
-  selectElement.style.borderRadius = '6px'
-  selectElement.style.border = `1px solid ${activeColor}`
-  selectElement.style.fontSize = 'inherit'
-  selectElement.style.fontFamily = 'inherit'
-  // selectElement.style.color = 'black'
-  // selectElement.style.backgroundColor = 'white'
-  selectElement.style.color = 'hsl(var(--foreground))'
-  selectElement.style.backgroundColor = 'hsl(var(--accent))'
-
-  return selectElement
-}
-
-export function generateCollectionElement(options: SelectOption[]): HTMLSelectElement {
-  const collectionElement = generateSelectElement(options)
-  collectionElement.classList.add(collectionName)
-
-  return collectionElement
-}
-
-function generateCategoryElement(options: SelectOption[]): HTMLSelectElement {
-  const categoryElement = generateSelectElement(options)
-  categoryElement.classList.add(categoryName)
-
-  return categoryElement
-}
-
-export function generateCategoryElements(iconCollections: IconCollection[]): HTMLSelectElement[] {
-  const categoryElements: HTMLSelectElement[] = []
-
-  for (const iconCollection of iconCollections) {
-    const categoryOptions = getIconCategoryOptions(iconCollection)
-    const categoryElement = generateCategoryElement(categoryOptions)
-
-    categoryElement.dataset.collectionName = iconCollection.prefix
-
-    categoryElements.push(categoryElement)
-  }
-
-  return categoryElements
-}
-
-export function selectFirstOptionElement(element: HTMLSelectElement, value?: string): void {
-  const changeEvent = new Event('change')
-  const optionElements = element.options
-
-  let optionElement = optionElements[0]
-
-  if (value) {
-    for (const optionEl of optionElements) {
-      if (optionEl.value !== value) {
-        continue
-      }
-
-      optionElement = optionEl
-      break
-    }
-  }
-
-  element.style.display = 'initial'
-  element.value = optionElement.value
-
-  element.dispatchEvent(changeEvent)
-}
 
 export function generateSearchElement(placeholder: string): HTMLInputElement {
   const searchElement = document.createElement('input')
@@ -165,7 +75,7 @@ async function generateIconTargetElement(iconPrefix: string, iconName: string): 
   return iconTargetElement
 }
 
-export function generateContentElement2(): HTMLDivElement {
+export function generateContentElement(): HTMLDivElement {
   const contentElement = document.createElement('div')
 
   contentElement.style.display = 'flex'
@@ -174,7 +84,25 @@ export function generateContentElement2(): HTMLDivElement {
   contentElement.style.overflowY = 'auto'
   contentElement.classList.add(contentName)
 
+  const emptyIconElement = generateEmptyIconElement()
+
+  contentElement.appendChild(emptyIconElement)
+
   return contentElement
+}
+
+export function generateEmptyIconElement(): HTMLDivElement {
+  const emptyElement = document.createElement('div')
+  emptyElement.style.width = '100%'
+  emptyElement.style.height = '100%'
+  emptyElement.style.display = 'flex'
+  emptyElement.style.justifyContent = 'center'
+  emptyElement.style.alignItems = 'center'
+  emptyElement.style.fontSize = '34px'
+  emptyElement.style.color = 'hsl(var(--foreground))'
+  emptyElement.innerHTML = 'No icons found'
+  emptyElement.id = 'empty-icon'
+  return emptyElement
 }
 
 export async function generateIconElements(icons: string[]): Promise<DocumentFragment> {
@@ -211,7 +139,7 @@ export function getFragmentHtml(fragmentElement: DocumentFragment): HTMLDivEleme
 export function generateModalContent(searchPlaceholder: string): HTMLDivElement {
   const fragmentElement = new DocumentFragment()
   const actionsElement = generateActionsElement(searchPlaceholder)
-  const contentElement = generateContentElement2()
+  const contentElement = generateContentElement()
 
   fragmentElement.appendChild(actionsElement)
   fragmentElement.appendChild(contentElement)
