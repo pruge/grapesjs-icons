@@ -1,24 +1,23 @@
 import 'grapesjs/dist/css/grapes.min.css'
 
-import grapesjs, { usePlugin } from 'grapesjs'
+import grapesjs, {usePlugin} from 'grapesjs'
 import plugin from './plugin'
 
-import type { PluginOptions } from './types'
+import type {PluginOptions} from './types'
 
 const options: PluginOptions = {
-  collections: [
-    'mdi',
-    'ri',
-    'uim',
-    'streamline-emojis'
-  ]
+  search: {
+    total: 0,
+    start: 0,
+    limit: 100,
+    debounce: 500,
+    throttle: 500,
+  },
 }
 
 grapesjs.init({
   container: '#editor',
   height: '100vh',
   storageManager: false,
-  plugins: [
-    usePlugin(plugin, options)
-  ]
+  plugins: [usePlugin(plugin, options)],
 })

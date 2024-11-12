@@ -1,15 +1,21 @@
 import {
-  collectionName, categoryName, searchName, actionsName,
-  iconTargetName, contentName, containerName, activeColor
+  collectionName,
+  categoryName,
+  searchName,
+  actionsName,
+  iconTargetName,
+  contentName,
+  containerName,
+  activeColor,
 } from '../constants'
-import { getIconCollectionOptions, getIconCategoryOptions } from './icon'
+import {getIconCategoryOptions} from './icon'
 
-import type { SelectOption, IconCollection } from '../types'
+import type {SelectOption, IconCollection} from '../types'
 
-function generateSelectElement (options: SelectOption[]): HTMLSelectElement {
+function generateSelectElement(options: SelectOption[]): HTMLSelectElement {
   const selectElement = document.createElement('select')
 
-  for (const { text, value } of options) {
+  for (const {text, value} of options) {
     const optionElement = document.createElement('option')
 
     optionElement.text = text
@@ -25,27 +31,29 @@ function generateSelectElement (options: SelectOption[]): HTMLSelectElement {
   selectElement.style.border = `1px solid ${activeColor}`
   selectElement.style.fontSize = 'inherit'
   selectElement.style.fontFamily = 'inherit'
-  selectElement.style.color = 'black'
-  selectElement.style.backgroundColor = 'white'
+  // selectElement.style.color = 'black'
+  // selectElement.style.backgroundColor = 'white'
+  selectElement.style.color = 'hsl(var(--foreground))'
+  selectElement.style.backgroundColor = 'hsl(var(--accent))'
 
   return selectElement
 }
 
-export function generateCollectionElement (options: SelectOption[]): HTMLSelectElement {
+export function generateCollectionElement(options: SelectOption[]): HTMLSelectElement {
   const collectionElement = generateSelectElement(options)
   collectionElement.classList.add(collectionName)
 
   return collectionElement
 }
 
-function generateCategoryElement (options: SelectOption[]): HTMLSelectElement {
+function generateCategoryElement(options: SelectOption[]): HTMLSelectElement {
   const categoryElement = generateSelectElement(options)
   categoryElement.classList.add(categoryName)
 
   return categoryElement
 }
 
-export function generateCategoryElements (iconCollections: IconCollection[]): HTMLSelectElement[] {
+export function generateCategoryElements(iconCollections: IconCollection[]): HTMLSelectElement[] {
   const categoryElements: HTMLSelectElement[] = []
 
   for (const iconCollection of iconCollections) {
@@ -60,10 +68,7 @@ export function generateCategoryElements (iconCollections: IconCollection[]): HT
   return categoryElements
 }
 
-export function selectFirstOptionElement (
-  element: HTMLSelectElement,
-  value?: string
-): void {
+export function selectFirstOptionElement(element: HTMLSelectElement, value?: string): void {
   const changeEvent = new Event('change')
   const optionElements = element.options
 
@@ -86,7 +91,7 @@ export function selectFirstOptionElement (
   element.dispatchEvent(changeEvent)
 }
 
-export function generateSearchElement (placeholder: string): HTMLInputElement {
+export function generateSearchElement(placeholder: string): HTMLInputElement {
   const searchElement = document.createElement('input')
 
   searchElement.type = 'search'
@@ -96,21 +101,17 @@ export function generateSearchElement (placeholder: string): HTMLInputElement {
   searchElement.style.border = `1px solid ${activeColor}`
   searchElement.style.fontSize = 'inherit'
   searchElement.style.fontFamily = 'inherit'
-  searchElement.style.color = 'black'
-  searchElement.style.backgroundColor = 'white'
+  // searchElement.style.color = 'black'
+  // searchElement.style.backgroundColor = 'white'
+  searchElement.style.color = 'hsl(var(--foreground))'
+  searchElement.style.backgroundColor = 'hsl(var(--accent))'
   searchElement.classList.add(searchName)
 
   return searchElement
 }
 
-export function generateActionsElement (
-  iconCollections: IconCollection[],
-  searchPlaceholder: string
-): HTMLDivElement {
+export function generateActionsElement(searchPlaceholder: string): HTMLDivElement {
   const actionsElement = document.createElement('div')
-  const collectionOptions = getIconCollectionOptions(iconCollections)
-  const collectionElement = generateCollectionElement(collectionOptions)
-  const categoryElements = generateCategoryElements(iconCollections)
   const searchElement = generateSearchElement(searchPlaceholder)
 
   actionsElement.style.display = 'flex'
@@ -120,28 +121,20 @@ export function generateActionsElement (
 
   searchElement.style.flexGrow = '1'
 
-  actionsElement.appendChild(collectionElement)
-  categoryElements.forEach(categoryElement => {
-    categoryElement.style.display = 'none'
-    actionsElement.appendChild(categoryElement)
-  })
   actionsElement.appendChild(searchElement)
 
   return actionsElement
 }
 
-function generateIconTargetElement (
-  iconPrefix: string,
-  iconName: string
-): HTMLDivElement {
+function generateIconTargetElement(iconPrefix: string, iconName: string): HTMLDivElement {
   const iconTargetElement = document.createElement('div')
 
   iconTargetElement.style.width = '48px'
   iconTargetElement.style.height = '48px'
-  iconTargetElement.style.color = 'black'
+  // iconTargetElement.style.color = 'black'
   iconTargetElement.style.cursor = 'pointer'
   iconTargetElement.style.borderRadius = '6px'
-  iconTargetElement.style.backgroundColor = 'white'
+  // iconTargetElement.style.backgroundColor = 'white'
   iconTargetElement.classList.add(iconTargetName)
 
   iconTargetElement.dataset.iconPrefix = iconPrefix
@@ -150,14 +143,9 @@ function generateIconTargetElement (
   return iconTargetElement
 }
 
-export function generateContentElement (
-  iconCollection: IconCollection,
-  categoryName?: string
-): HTMLDivElement {
-  const { categories, prefix: iconPrefix } = iconCollection
-  const iconNames = !categoryName
-    ? categories[Object.keys(categories)[0]]
-    : categories[categoryName]
+export function generateContentElement(iconCollection: IconCollection, categoryName?: string): HTMLDivElement {
+  const {categories, prefix: iconPrefix} = iconCollection
+  const iconNames = !categoryName ? categories[Object.keys(categories)[0]] : categories[categoryName]
   const contentElement = document.createElement('div')
 
   for (const iconName of iconNames) {
@@ -168,37 +156,62 @@ export function generateContentElement (
   contentElement.style.display = 'flex'
   contentElement.style.gap = '10px'
   contentElement.style.flexWrap = 'wrap'
+  contentElement.style.overflowY = 'auto'
   contentElement.classList.add(contentName)
 
   return contentElement
 }
 
-export function generateContainerElement (): HTMLDivElement {
+export function generateContentElement2(): HTMLDivElement {
+  const contentElement = document.createElement('div')
+
+  contentElement.style.display = 'flex'
+  contentElement.style.gap = '10px'
+  contentElement.style.flexWrap = 'wrap'
+  contentElement.style.overflowY = 'auto'
+  contentElement.classList.add(contentName)
+
+  return contentElement
+}
+
+export function generateIconElements(icons: string[]): DocumentFragment {
+  const fragmentElement = new DocumentFragment()
+
+  for (const icon of icons) {
+    const [iconPrefix, iconName] = icon.split(':')
+    const iconTargetElement = generateIconTargetElement(iconPrefix, iconName)
+    fragmentElement.appendChild(iconTargetElement)
+  }
+
+  return fragmentElement
+}
+
+export function generateContainerElement(): HTMLDivElement {
   const containerElement = document.createElement('div')
 
   containerElement.style.display = 'flex'
   containerElement.style.flexDirection = 'column'
   containerElement.style.gap = '10px'
+  containerElement.style.width = '100%'
   containerElement.classList.add(containerName)
 
   return containerElement
 }
 
-export function getFragmentHtml (fragmentElement: DocumentFragment): string {
+export function getFragmentHtml(fragmentElement: DocumentFragment): HTMLDivElement {
   const containerElement = generateContainerElement()
   containerElement.appendChild(fragmentElement)
 
-  return containerElement.outerHTML
+  return containerElement
 }
 
-export function generateModalContent (
-  iconCollections: IconCollection[],
-  searchPlaceholder: string
-): string {
+export function generateModalContent(searchPlaceholder: string): HTMLDivElement {
   const fragmentElement = new DocumentFragment()
-  const actionsElement = generateActionsElement(iconCollections, searchPlaceholder)
+  const actionsElement = generateActionsElement(searchPlaceholder)
+  const contentElement = generateContentElement2()
 
   fragmentElement.appendChild(actionsElement)
+  fragmentElement.appendChild(contentElement)
 
   return getFragmentHtml(fragmentElement)
 }

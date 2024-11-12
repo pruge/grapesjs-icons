@@ -1,53 +1,42 @@
-import { collectionName, categoryName, searchName, modalContainerName } from '../constants'
-import { generateModalContent, selectFirstOptionElement } from './element'
-import { attachEventListener, attachEventListeners, detachAllEventListeners } from './event-listener'
-import { onCollectionChanged, onCategoryChanged, onSearchChanged } from './listener'
-import { getIconCollectionName } from './storage'
+import {searchName, modalContainerName, contentName} from '../constants'
+import {generateModalContent} from './element'
+import {attachEventListener, detachAllEventListeners} from './event-listener'
+import {onContentInfinityScroll, onSearchChanged} from './listener'
 
-import type { Editor } from 'grapesjs'
-import type { ModalOptions, IconCollection } from '../types'
+import type {Editor} from 'grapesjs'
+import type {ModalOptions, SearchOptions} from '../types'
 
-function attachListeners (iconCollections: IconCollection[]) {
-  const collectionElement = document.querySelector<HTMLSelectElement>(`.${collectionName}`)
-  const categoryElements = document.querySelectorAll<HTMLSelectElement>(`.${categoryName}`)
+function attachListeners(searchOptions: SearchOptions) {
   const searchElement = document.querySelector<HTMLInputElement>(`.${searchName}`)
+  const contentElement = document.querySelector<HTMLDivElement>(`.${contentName}`)
 
-  if (!collectionElement || !categoryElements || !searchElement) {
+  if (!searchElement || !contentElement) {
     return
   }
 
-  const collectionListener = onCollectionChanged()
-  const categoryListener = onCategoryChanged(iconCollections)
-  const searchListener = onSearchChanged()
+  const searchListener = onSearchChanged(searchOptions)
+  const contentListener = onContentInfinityScroll(searchOptions)
 
-  attachEventListener<HTMLSelectElement>('change', collectionElement, collectionListener)
-  attachEventListeners<HTMLSelectElement>('change', categoryElements, categoryListener)
   attachEventListener<HTMLInputElement>('input', searchElement, searchListener)
-
-  const iconCollectionName = getIconCollectionName() || ''
-
-  selectFirstOptionElement(collectionElement, iconCollectionName)
+  attachEventListener<HTMLDivElement>('scroll', contentElement, contentListener)
 }
 
-export function openModal (editor: Editor, modalOptions: ModalOptions, iconCollections: IconCollection[]) {
-  const { Modal } = editor
-  const { title, searchText } = modalOptions
+export function openModal(editor: Editor, modalOptions: ModalOptions, searchOptions: SearchOptions) {
+  const {Modal} = editor
+  const {title, searchText} = modalOptions
 
-  const content = generateModalContent(
-    iconCollections,
-    searchText
-  )
+  const content = generateModalContent(searchText)
   const modalModule = Modal.open({
     title,
     content,
     attributes: {
-      class: modalContainerName
-    }
+      class: modalContainerName,
+    },
   })
 
   modalModule.onceClose(() => {
     detachAllEventListeners()
   })
 
-  attachListeners(iconCollections)
+  setTimeout(() => attachListeners(searchOptions), 200)
 }

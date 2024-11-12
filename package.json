@@ -24,18 +24,17 @@
     "commit": "git add . && git status && git-cz && git status"
   },
   "dependencies": {
-    "iconify-icon": "1.0.8"
+    "iconify-icon": "1.0.8",
+    "open-google-translator": "file:../translate"
   },
   "devDependencies": {
+    "@iconify/types": "^2.0.0",
     "commitizen": "4.3.0",
     "cz-conventional-changelog": "3.3.0",
-    "grapesjs": "0.21.4",
+    "grapesjs": "file:../grapesjs/packages/core",
     "typescript": "5.1.6",
     "vite": "4.4.9",
     "vite-plugin-dts": "3.5.1"
-  },
-  "peerDependencies": {
-    "grapesjs": ">=0.17.26"
   },
   "homepage": "https://github.com/bgrand-ch/grapesjs-icons",
   "repository": {

@@ -1,110 +1,18 @@
-import { loadIcons } from 'iconify-icon'
-import { categoryName as categoryClassName, containerName, contentName, iconTargetName } from '../constants'
-import { setIconCollectionName, setIconCategoryName, getIconCategoryName, getIconCollectionName } from './storage'
-import { selectFirstOptionElement, generateContentElement } from './element'
-import { detachAllEventListeners } from './event-listener'
+import {loadIcons} from 'iconify-icon'
+import {contentName, iconTargetName} from '../constants'
+import {generateIconElements} from './element'
 
-import type { IconCollection } from '../types'
+import type {SearchOptions} from '../types'
+import {search} from './icon'
+import {debounce, throttle} from './interval'
+import {detachAllEventListeners} from './event-listener'
+import {translate} from 'open-google-translator'
 
-const pluginName = import.meta.env.VITE_PLUGIN_NAME
-const logScope = `[${pluginName}::utils/listener]`
-
-export function onCollectionChanged (): EventListener {
-  let categoryElements: NodeListOf<HTMLSelectElement>|null = null
-
-  return event => {
-    const collectionElement = event.target as HTMLSelectElement|null
-
-    if (!collectionElement) {
-      return
-    }
-
-    const collectionName = collectionElement.value
-
-    setIconCollectionName(collectionName)
-
-    if (!categoryElements) {
-      categoryElements = document.querySelectorAll<HTMLSelectElement>(`.${categoryClassName}`)
-    }
-
-    for (const categoryElement of categoryElements) {
-      const dataCollectionName = categoryElement.dataset.collectionName!
-      const currentDisplay = categoryElement.style.display
-
-      if (
-        dataCollectionName === collectionName &&
-        currentDisplay !== 'none'
-      ) {
-        continue
-      }
-
-      if (dataCollectionName !== collectionName) {
-        categoryElement.style.display = 'none'
-        continue
-      }
-
-      const categoryName = getIconCategoryName() || ''
-
-      selectFirstOptionElement(categoryElement, categoryName)
-    }
-  }
-}
-
-export function onCategoryChanged (iconCollections: IconCollection[]): EventListener {
-  return event => {
-    const categoryElement = event.target as HTMLSelectElement|null
-
-    if (!categoryElement) {
-      return
-    }
-
-    const collectionName = getIconCollectionName()!
-    const categoryName = categoryElement.value
-
-    setIconCategoryName(categoryName)
-
-    const iconCollection = iconCollections.find(({ prefix }) => {
-      return prefix === collectionName
-    })
-
-    if (!iconCollection) {
-      return
-    }
-
-    const iconNames = iconCollection.categories[categoryName]
-    const iconFullNames: string[] = []
-
-    for (const iconName of iconNames) {
-      const iconFullName = `${collectionName}:${iconName}`
-      iconFullNames.push(iconFullName)
-    }
-
-    loadIcons(iconFullNames)
-
-    const containerElement = document.querySelector<HTMLDivElement>(`.${containerName}`)
-
-    if (!containerElement) {
-      return
-    }
-
-    const currentContentElement = containerElement.querySelector<HTMLDivElement>(`.${contentName}`)
-    const contentElement = generateContentElement(iconCollection, categoryName)
-
-    if (!currentContentElement) {
-      containerElement.appendChild(contentElement)
-      return
-    }
-
-    detachAllEventListeners(`.${iconTargetName}`)
-    currentContentElement.replaceWith(contentElement)
-  }
-}
-
-// TODO: Search icons with Iconify API
 // see https://iconify.design/docs/api/search.html
-export function onSearchChanged (): EventListener {
-  return event => {
-    const searchElement = event.target as HTMLInputElement|null
+let prevSearchOptions: SearchOptions
+export function onSearchChanged(searchOptions: SearchOptions): EventListener {
+  return async (event) => {
+    const searchElement = event.target as HTMLInputElement | null
 
     if (!searchElement) {
       return
@@ -112,10 +20,82 @@ export function onSearchChanged (): EventListener {
 
     const searchValue = searchElement.value
 
-    console.warn(
-      logScope,
-      'Search is not implemented yet in "grapesjs-icons". Do you want contribute?',
-      `Value changed: ${searchValue}`
+    debounce(
+      'search',
+      async () => {
+        let translatedValue: string = searchValue
+
+        if (searchOptions.translate) {
+          translatedValue = await translate({
+            listOfWordsToTranslate: [searchValue],
+            fromLanguage: searchOptions.translate.from || 'auto',
+            toLanguage: searchOptions.translate.to || 'en',
+          }).then((translatedValue) => {
+            return translatedValue[0].translation
+          })
+        }
+
+        prevSearchOptions = {...searchOptions, query: translatedValue}
+
+        clearIcons()
+        await addIcons(prevSearchOptions)
+      },
+      searchOptions.debounce,
     )
+  }
+}
+
+export function onContentInfinityScroll(searchOptions: SearchOptions): EventListener {
+  return async (event) => {
+    // console.log('scroll....', event)
+    const contentElement = event.target as HTMLDivElement | null
+
+    if (!contentElement) {
+      return
+    }
+
+    throttle(
+      'infinite-scroll',
+      async () => {
+        const endOfPage =
+          Math.ceil(contentElement.clientHeight + contentElement.scrollTop) >= contentElement.scrollHeight
+        if (endOfPage) {
+          const {start, limit, total} = prevSearchOptions
+          const amount = limit - start
+          if (total < start) return
+          prevSearchOptions = {...prevSearchOptions, start: start + amount, limit: limit + amount}
+          await addIcons(prevSearchOptions)
+        }
+      },
+      searchOptions.throttle,
+    )
+  }
+}
+
+const addIcons = async (searchOptions: SearchOptions) => {
+  console.log('searchOptions', searchOptions)
+  if (searchOptions.query === '' || searchOptions.query === undefined) return
+  const iconSearchResult = await search(searchOptions)
+  const icons = iconSearchResult?.icons || []
+  prevSearchOptions.total = iconSearchResult?.total || 0
+  loadIcons(icons)
+
+  const currentContentElement = document.querySelector<HTMLDivElement>(`.${contentName}`)
+  console.log('currentContentElement', currentContentElement)
+  const iconElements = generateIconElements(icons)
+  console.log('iconElements', iconElements)
+
+  if (!currentContentElement) {
+    return
+  }
+
+  detachAllEventListeners(`.${iconTargetName}`)
+  currentContentElement.appendChild(iconElements)
+}
+
+export const clearIcons = () => {
+  const contentElement = document.querySelector<HTMLDivElement>(`.${contentName}`)
+  if (contentElement) {
+    contentElement.innerHTML = ''
   }
 }

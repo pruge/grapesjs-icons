@@ -1,4 +1,4 @@
-export function onInterval (callbackFn: () => void, msInterval: number): number {
+export function onInterval(callbackFn: () => void, msInterval: number): number {
   let lastTime = 0
 
   const checkTime = (currTime: number): boolean => {
@@ -18,10 +18,28 @@ export function onInterval (callbackFn: () => void, msInterval: number): number 
       callbackFn()
     }
 
-    return window.requestAnimationFrame(
-      execute
-    )
+    return window.requestAnimationFrame(execute)
   }
 
   return execute()
+}
+
+let throttleTimer: Record<string, boolean> = {}
+export const throttle = (key: string, callback: () => void, time: number) => {
+  if (throttleTimer[key]) return
+
+  throttleTimer[key] = true
+
+  setTimeout(() => {
+    callback()
+    throttleTimer[key] = false
+  }, time)
+}
+
+let debounceTimer: Record<string, number> = {}
+export const debounce = (key: string, callback: () => void, time: number) => {
+  clearTimeout(debounceTimer[key])
+  debounceTimer[key] = setTimeout(() => {
+    callback()
+  }, time)
 }
