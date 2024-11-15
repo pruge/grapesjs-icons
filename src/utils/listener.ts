@@ -4,7 +4,7 @@ import {generateEmptyIconElement, generateIconElements} from './element'
 
 import type {SearchOptions} from '../types'
 import {search} from './icon'
-import {debounce, throttle} from './interval'
+import {throttle} from './interval'
 import {translate} from 'open-google-translator'
 
 // see https://iconify.design/docs/api/search.html
@@ -19,27 +19,23 @@ export function onSearchChanged(searchOptions: SearchOptions): EventListener {
 
     const searchValue = searchElement.value
 
-    debounce(
-      'search',
-      async () => {
-        let translatedValue: string = searchValue
+    if (event.type === 'keypress' && (event as KeyboardEvent).key === 'Enter') {
+      let translatedValue: string = searchValue
 
-        if (searchOptions.translate) {
-          translatedValue = await translate({
-            listOfWordsToTranslate: [searchValue],
-            fromLanguage: searchOptions.translate.from || 'auto',
-            toLanguage: searchOptions.translate.to || 'en',
-          }).then((translatedValue) => {
-            return translatedValue[0].translation
-          })
-        }
+      if (searchOptions.translate) {
+        translatedValue = await translate({
+          listOfWordsToTranslate: [searchValue],
+          fromLanguage: searchOptions.translate.from || 'auto',
+          toLanguage: searchOptions.translate.to || 'en',
+        }).then((translatedValue) => {
+          return translatedValue[0].translation
+        })
+      }
 
-        prevSearchOptions = {...searchOptions, query: translatedValue}
+      prevSearchOptions = {...searchOptions, query: translatedValue}
 
-        await addIcons(prevSearchOptions, {clear: true})
-      },
-      searchOptions.debounce,
-    )
+      await addIcons(prevSearchOptions, {clear: true})
+    }
   }
 }
 

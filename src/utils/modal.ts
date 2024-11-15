@@ -17,7 +17,7 @@ function attachListeners(searchOptions: SearchOptions) {
   const searchListener = onSearchChanged(searchOptions)
   const contentListener = onContentInfinityScroll(searchOptions)
 
-  attachEventListener<HTMLInputElement>('input', searchElement, searchListener)
+  attachEventListener<HTMLInputElement>('keypress', searchElement, searchListener)
   attachEventListener<HTMLDivElement>('scroll', contentElement, contentListener)
 }
 
